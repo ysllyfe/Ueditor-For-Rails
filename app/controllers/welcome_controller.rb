@@ -2,4 +2,8 @@
 class WelcomeController < ApplicationController
 	def index
 	end
+	def sn
+	end
+	def change
+	end
 end
