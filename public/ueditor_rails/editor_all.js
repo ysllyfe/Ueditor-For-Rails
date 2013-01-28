@@ -4793,6 +4793,7 @@ UE.ajax = function() {
 			};
 			if (method == "POST") {
 				ajaxRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                ajaxRequest.setRequestHeader('X-CSRF-Token', $("meta[name='csrf-token']").attr('content'));
 				ajaxRequest.send(submitStr);
 			} else {
 				ajaxRequest.send(null);
@@ -15840,7 +15841,7 @@ baidu.editor.ui = {};
 
     var iframeUrlMap = {
         'anchor':'~/dialogs/anchor/anchor.html',
-        'insertimage':'~/dialogs/image/image.html',
+        'insertimage':'/ueditor/image',
         'inserttable':'~/dialogs/table/table.html',
         'link':'~/dialogs/link/link.html',
         'spechars':'~/dialogs/spechars/spechars.html',

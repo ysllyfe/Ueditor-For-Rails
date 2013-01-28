@@ -5,5 +5,6 @@ class WelcomeController < ApplicationController
 	def sn
 	end
 	def change
+		@ueditor = '/public/ueditor_rails/'
 	end
 end

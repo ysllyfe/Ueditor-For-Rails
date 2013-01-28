@@ -6,6 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 var imageUploader = {};
+var ajax_num = 1;
 (function () {
     var g = $G,
         ajax = parent.baidu.editor.ajax,
@@ -133,6 +134,44 @@ var imageUploader = {};
 
     }
 
+    function ajaxlist(){
+        ajax.request(editor.options.imageManagerUrl, {
+            timeout:100000,
+            page:ajax_num,
+            onsuccess:function (xhr) {
+                //去除空格
+                var tmp = utils.trim(xhr.responseText),
+                    imageUrls = !tmp ? [] : tmp.split("ue_separate_ue"),
+                    length = imageUrls.length;
+                //g("imageList").innerHTML = !length ? "&nbsp;&nbsp;" + lang.noUploadImage : "";
+                for (var k = 0, ci; ci = imageUrls[k++];) {
+                    var img = document.createElement("img");
+                    var div = document.createElement("div");
+                    div.appendChild(img);
+                    div.style.display = "none";
+                    g("imageList").appendChild(div);
+                    img.onclick = function () {
+                        changeSelected(this);
+                    };
+                    img.onload = function () {
+                        this.parentNode.style.display = "";
+                        var w = this.width, h = this.height;
+                        scale(this, 100, 120, 80);
+                        this.title = lang.toggleSelect + w + "X" + h;
+                    };
+                    var array = ci.split('|');
+                    var bigimg = array[0];
+                    var thumbimg = array[1];
+                    img.setAttribute( ajax_num == 1 ? "src" : "lazy_src", thumbimg);
+                    img.setAttribute("data_ue_src", bigimg);
+
+                }
+            },
+            onerror:function () {
+                g("imageList").innerHTML = lang.imageLoadError;
+            }
+        });
+    }
     /**
      * 延迟加载
      */
@@ -142,6 +181,16 @@ var imageUploader = {};
             var imgs = this.getElementsByTagName("img"),
                 top = Math.ceil(this.scrollTop / 100) - 1;
             top = top < 0 ? 0 : top;
+            var currentTab = findFocus("tabHeads", "tabSrc");
+            switch (currentTab) {
+                case "imgManager":
+                    if ((400*(ajax_num) - this.scrollTop - 315) < 20 )
+                    {
+                        ajax_num++;
+                        ajaxlist();
+                    }
+                    break;
+            }
             for (var i = top * 5; i < (top + 5) * 5; i++) {
                 var img = imgs[i];
                 if (img && !img.getAttribute("src")) {
@@ -166,7 +215,7 @@ var imageUploader = {};
                     return insertBatch();
                     break;
                 case "imgManager":
-                    return insertSearch("imageList");
+                    return insertManager("imageList");
                     break;
                 case "imgSearch":
                     return insertSearch("searchList", true);
@@ -200,6 +249,20 @@ var imageUploader = {};
         }
         insertImage(imgObjs);
         catchRemote && editor.fireEvent("catchRemoteImage");
+        hideFlash();
+    }
+
+    function insertManager(id) {
+        var imgs = $G(id).getElementsByTagName("img"), imgObjs = [];
+        for (var i = 0, ci; ci = imgs[i++];) {
+            if (ci.getAttribute("selected")) {
+                var url = ci.getAttribute("data_ue_src", 2).replace(/(\s*$)/g, ""), img = {};
+                img.src = url;
+                img.data_ue_src = url;
+                imgObjs.push(img);
+            }
+        }
+        insertImage(imgObjs);
         hideFlash();
     }
 
@@ -581,40 +644,8 @@ var imageUploader = {};
                     list.style.display = "";
                     //已经初始化过时不再重复提交请求
                     if (!list.children.length) {
-                        ajax.request(editor.options.imageManagerUrl, {
-                            timeout:100000,
-                            action:"get",
-                            onsuccess:function (xhr) {
-                                //去除空格
-                                var tmp = utils.trim(xhr.responseText),
-                                    imageUrls = !tmp ? [] : tmp.split("ue_separate_ue"),
-                                    length = imageUrls.length;
-                                g("imageList").innerHTML = !length ? "&nbsp;&nbsp;" + lang.noUploadImage : "";
-                                for (var k = 0, ci; ci = imageUrls[k++];) {
-                                    var img = document.createElement("img");
-
-                                    var div = document.createElement("div");
-                                    div.appendChild(img);
-                                    div.style.display = "none";
-                                    g("imageList").appendChild(div);
-                                    img.onclick = function () {
-                                        changeSelected(this);
-                                    };
-                                    img.onload = function () {
-                                        this.parentNode.style.display = "";
-                                        var w = this.width, h = this.height;
-                                        scale(this, 100, 120, 80);
-                                        this.title = lang.toggleSelect + w + "X" + h;
-                                    };
-                                    img.setAttribute(k < 35 ? "src" : "lazy_src", editor.options.imageManagerPath + ci.replace(/\s+|\s+/ig, ""));
-                                    img.setAttribute("data_ue_src", editor.options.imageManagerPath + ci.replace(/\s+|\s+/ig, ""));
-
-                                }
-                            },
-                            onerror:function () {
-                                g("imageList").innerHTML = lang.imageLoadError;
-                            }
-                        });
+                        g("imageList").innerHTML = '';
+                        ajaxlist();
                     }
                 }
                 if (id == "imgSearch") {
