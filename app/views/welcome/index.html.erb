@@ -1,4 +1,12 @@
 <div class="clearfix announce instapaper_body markdown" id="readme">
           <span class="name"><span class="mini-icon mini-icon-readme"></span>UEditor For Rails</span>
-          <article itemprop="mainContentOfPage" class="markdown-body entry-content"></article>
+          <article itemprop="mainContentOfPage" class="markdown-body entry-content">
+<h2>修改和扩展</h2>
+1，修改了原UEditor的AJAX与FLASH上传，添加了X-CSRF-Token防止在RAILS SESSION丢失<br />
+2，因为JS够烂，所以修改时用了JQUERY框架，离开了就出错喽～<br />
+3，将各上传动作改为用paperclip<br />
+4，UEditor中的图片管理改为读取数据库里的数据，并改为瀑布流，显示的也是缩略图，而不是原图<br />
+
+
+          </article>
         </div>
